@@ -1,0 +1,50 @@
+name: Deploy Streamlit App
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install pytest  # se tiver testes
+        
+    - name: Test imports
+      env:
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      run: |
+        python -c "
+import os
+import streamlit as interface
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from groq import Groq
+import io
+import base64
+import json
+from datetime import datetime
+from dotenv import load_dotenv
+print('✅ Todos os imports funcionaram!')
+        "
+        
+    - name: Validate environment variable
+      env:
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      run: |
+        if [ -z "$GROQ_API_KEY" ]; then
+          echo "❌ GROQ_API_KEY não está configurada"
+          exit 1
+        else
+          echo "✅ GROQ_API_KEY está configurada"
+        fi
